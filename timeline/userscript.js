@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name         HN Timeline
+// @name         HN Comments Timeline
 // @namespace    http://tampermonkey.net/
 // @version      0.1
 // @description  Adds a timeline bar to highlight new comments.
@@ -10,9 +10,7 @@
 // @run-at       document-start
 // ==/UserScript==
 
-(function() {
-    'use strict';
-
+window.addEventListener('load', () => {
     let style = document.createElement('style');
     style.setAttribute('type', 'text/css');
     style.setAttribute('title', 'HN Timeline UserScript Styles');
@@ -88,7 +86,7 @@
     let commtree = document.querySelector('.comment-tree');
     commtree.parentElement.insertBefore(status_text, commtree);
     commtree.parentElement.insertBefore(timeline, commtree);
-})();
+});
 
         function dt_text(dt) {
             dt = dt/1000|0;
