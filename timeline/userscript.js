@@ -17,12 +17,15 @@ window.addEventListener('load', () => {
     style.innerHTML = `
       .comment-timeline { position: relative; margin: 0 2rem; height: 3rem; }
       .comment-timeline > b { position: absolute; height: 3rem; background: #888; width: 1px; pointer-events: none; }
+      .comment-timeline > b.mine { background: #f60; z-index: 1; width: 3px; }
       .comment-timeline > b.comm-timeline-arrow { height: 1px; top: 50%; width: 100%; }
-      .comm-timeline-hidden { opacity: 0.1 }
+      .comm-timeline-hidden { opacity: 0.5 }
       .comm-timeline-shadow { position: absolute; left: 0; top: 0; bottom: 0; background: #000; opacity: 0.5; z-index: 1; }
       .comm-timeline-status { margin: 0 2rem; font-size: 0.5rem; }
     `;
     document.head.append(style);
+
+    let this_user = document.querySelector('#me')?.textContent;
 
     let timeline = document.createElement('div');
     timeline.className = 'comment-timeline';
@@ -43,9 +46,10 @@ window.addEventListener('load', () => {
     let comments = [...document.querySelectorAll('.comtr')];
     let commstats = comments.map(e => {
         let comm = e;
-        let time = e.querySelector('.comhead > .age').title;
-        let text = e.querySelector('.commtext').textContent;
-        return { time, text, comm };
+        let time = e.querySelector('.comhead > .age')?.title;
+        let text = e.querySelector('.commtext')?.textContent;
+        let user = e.querySelector('.comhead > .hnuser')?.textContent;
+        return { user, time, text, comm };
     });
 
     let timestamps = commstats.map(cs => +new Date(cs.time));
@@ -59,6 +63,7 @@ window.addEventListener('load', () => {
     status_text.textContent = 'Comments timespan: ' + dt_text(time_max - time_min);
 
     for (let i = 0; i < comments.length; i++) {
+        let user = commstats[i].user;
         let time = timestamps[i];
         let len = commtexts[i];
         let rel_time = (time - time_min) / (time_max - time_min);
@@ -66,6 +71,7 @@ window.addEventListener('load', () => {
         rel_size = rel_size * 0.9 + 0.1;
 
         let dot = document.createElement('b');
+        dot.classList.toggle('mine', user == this_user);
         dot.style.left = (rel_time * 100).toFixed(2) + '%';
         dot.style.top = ((1.0 - rel_size)/2 * 100).toFixed(2) + '%';
         dot.style.height = (rel_size * 100).toFixed(2) + '%';
@@ -78,9 +84,12 @@ window.addEventListener('load', () => {
       let ts = time_min + (time_max - time_min) * pos;
       console.info('min comment timestamp:', new Date(ts).toISOString());
       shadow.style.width = (pos * 100).toFixed(2) + '%';
-      status_text.textContent = 'Earliest comment: T+' + dt_text(ts - time_min);
       for (let cs of commstats)
         cs.comm.classList.toggle('comm-timeline-hidden', new Date(cs.time) < ts);
+
+      let num_hidden = document.querySelectorAll('.comm-timeline-hidden').length;
+      let num_shown = comments.length - num_hidden;
+      status_text.textContent = num_shown + ' comments made after T+' + dt_text(ts - time_min);
     };
 
     let commtree = document.querySelector('.comment-tree');
